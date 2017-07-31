@@ -1,0 +1,53 @@
+model{    
+  # observation model    
+  
+  
+  for(t in 1:T)
+  {  
+    y[t] ~ dgev(mu[t], sigma[t], xi)    
+    sigma[t] <- exp(lsigma[t])
+  }        
+  
+  # start level   
+  
+  mu[1] <- mu.1      
+  mu.1 ~ dnorm( m.mle, tau1 )      
+  
+  # shift in levels mechanism 
+  
+  eta ~ dbeta(0.5, 0.5)    
+  
+  for (t in 2:T) 
+  {      
+    delta[t] ~ dbern(eta)     
+    nu[t] ~ ddexp(0,0.01)    
+    mu[t] <- mu[t-1] + delta[t] * nu[t]     
+  }        
+  
+  # varying sigma 
+
+  for (t in 1:T) 
+  {      
+    lsigma.mu[t] <- a * x1[t] + b * x2[t]
+    lsigma[t] ~ dnorm( lsigma.mu[t], tau2 ) # tau2 = precision 
+  }
+  
+
+  # shape parameter   
+  xi ~ dnorm(0.0,0.001)    
+
+  a ~ dnorm(0.0, tau3)
+  b ~ dnorm(0.0, tau4)
+
+   d1 <- dof1 * 0.5
+  
+   tau1 ~ dgamma(d1, d1 )
+   tau3 ~ dgamma(d1, d1 ) 
+   tau4 ~ dgamma(d1, d1 )
+
+  # hyper parameters
+
+   dof1 ~ dunif(0, 100)
+   tau2 ~ dgamma(0.01, 0.01)
+    
+}    
